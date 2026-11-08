@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f7fb">
+<title>智能错题本 V1.0</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#202938;--muted:#718096;--line:#e5eaf1;--blue:#3568d4;--blue2:#edf3ff;--green:#16845b;--red:#c54b4b;--shadow:0 5px 22px rgba(35,53,83,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;padding:12px max(14px,env(safe-area-inset-left))}
+.top{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:800;font-size:19px}.version{font-size:12px;color:var(--muted);white-space:nowrap}
+main{max-width:1120px;margin:18px auto;padding:0 14px 40px}.studentbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--card);padding:12px;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:14px}
+select,input,textarea{font:inherit;color:inherit;border:1px solid #d9e0ea;border-radius:9px;padding:9px 10px;background:#fff;min-width:0;width:100%}textarea{resize:vertical;min-height:76px}
+.studentbar select{width:auto;min-width:150px}.tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 12px;scrollbar-width:thin}.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;padding:9px 13px;border-radius:10px;color:#526176;cursor:pointer}.tab.active{background:var(--blue2);border-color:#b9cdfb;color:#214fae;font-weight:700}
+.panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);margin-bottom:13px}.card h2{font-size:17px;margin:0 0 12px}.card h3{font-size:15px;margin:0 0 9px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:13px;color:#536174;font-weight:650}.full{grid-column:1/-1}
+.btn{border:0;border-radius:9px;background:var(--blue);color:#fff;padding:10px 14px;font-weight:650;cursor:pointer}.btn.secondary{background:#edf1f7;color:#344256}.btn.green{background:#16845b}.btn.danger{background:#fff0f0;color:#b43b3b}.btn.small{padding:7px 10px;font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.muted{color:var(--muted);font-size:13px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.stat{background:#f7f9fc;border-radius:11px;padding:12px}.stat b{font-size:24px;display:block}.stat span{font-size:12px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:9px}.item{border:1px solid var(--line);border-radius:11px;padding:12px;display:flex;gap:12px;align-items:flex-start}.item .grow{flex:1;min-width:0}.item-title{font-weight:700;margin-bottom:4px;overflow-wrap:anywhere}.tag{display:inline-block;background:#eef3fb;color:#526987;border-radius:20px;padding:2px 8px;font-size:12px;margin:2px 4px 2px 0}
+.empty{text-align:center;padding:28px 12px;color:var(--muted)}.previewimg{max-width:100%;max-height:220px;border-radius:9px;border:1px solid var(--line);display:block;margin-top:8px}
+.hidden{display:none!important}.notice{background:#fff8e8;border:1px solid #f2dfad;color:#76591b;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+.paper-preview{background:#fff;color:#111;max-width:800px;margin:12px auto;padding:34px 38px;box-shadow:0 2px 14px #0001;min-height:500px}
+.paper-preview h1{text-align:center;font-size:21px;margin:0 0 18px}.paper-meta{display:flex;justify-content:space-between;border-bottom:1px solid #aaa;padding-bottom:10px;margin-bottom:18px;font-size:13px}
+.paper-q{margin:0 0 23px;break-inside:avoid}.paper-q .qtitle{font-weight:600;white-space:pre-wrap}.answerline{border-bottom:1px solid #aaa;height:32px;margin-top:8px}
+.trace{color:#c8c8c8;font-size:22px;line-height:2;white-space:pre-wrap;letter-spacing:1px}
+@media(max-width:650px){main{margin:12px auto}.grid{grid-template-columns:1fr}.studentbar{align-items:stretch}.studentbar select{flex:1}.stats{gap:6px}.stat{padding:9px}.stat b{font-size:21px}.card{padding:13px}.paper-preview{padding:22px 18px;margin:8px -4px;min-height:420px}}
+@media print{body{background:#fff}.no-print,header,.studentbar,.tabs,.panel:not(.active){display:none!important}main{max-width:none;margin:0;padding:0}.panel.active{display:block!important}.card:not(.print-area){display:none!important}.paper-preview{box-shadow:none;margin:0;max-width:none;padding:12mm 14mm;min-height:0}.paper-q{break-inside:avoid} @page{size:A4;margin:12mm}}
+</style>
+</head>
+<body>
+<header><div class="top"><div class="brand">📚 智能错题本</div><div class="version">V1.0 测试版 · 本地存储</div></div></header>
+<main>
+<div class="studentbar no-print">
+  <strong>当前学生</strong><select id="currentStudent" aria-label="选择学生"></select>
+  <button class="btn small secondary" id="addStudentBtn">＋新增学生</button>
+  <button class="btn small secondary" id="editStudentBtn">编辑档案</button>
+  <span class="muted" id="saveState">正在初始化…</span>
+</div>
+<nav class="tabs no-print" aria-label="功能导航">
+<button class="tab active" data-tab="home">首页</button><button class="tab" data-tab="capture">录入错题</button><button class="tab" data-tab="mistakes">错题本</button><button class="tab" data-tab="paper">试卷重组</button><button class="tab" data-tab="trace">答案描红</button><button class="tab" data-tab="stats">学习统计</button><button class="tab" data-tab="data">数据管理</button>
+</nav>
+
+<section class="panel active" id="home">
+ <div class="card"><h2>学习概览</h2><div class="stats"><div class="stat"><b id="totalCount">0</b><span>错题总数</span></div><div class="stat"><b id="reviewCount">0</b><span>待复习 / 需强化</span></div><div class="stat"><b id="masteredCount">0</b><span>已掌握</span></div></div></div>
+ <div class="card"><h2>学科错题分布</h2><div id="subjectSummary" class="list"><div class="empty">还没有错题，先录入第一道吧。</div></div></div>
+ <div class="card"><h2>快捷操作</h2><div class="actions"><button class="btn" data-go="capture">拍照 / 录入错题</button><button class="btn secondary" data-go="mistakes">查看错题本</button><button class="btn secondary" data-go="paper">开始组卷</button></div></div>
+ <div class="notice">数据保存在当前浏览器。请定期进入「数据管理」导出完整备份；清除浏览器数据、换浏览器或换设备可能导致本地数据无法找回。</div>
+</section>
+
+<section class="panel" id="capture">
+ <div class="card"><h2 id="formHeading">新增错题</h2><div class="notice">可以拍照/上传原题作为档案，再将题目转写为文字。试卷重组使用文字内容重新排版。正确答案和解析由家长确认后填写。</div>
+ <form id="questionForm">
+ <input type="hidden" id="questionId">
+ <div class="grid">
+  <div class="field"><label for="subject">学科 *</label><select id="subject"><option>语文</option><option>数学</option><option>英语</option></select></div>
+  <div class="field"><label for="qDate">错题日期</label><input id="qDate" type="date"></div>
+  <div class="field"><label for="qType">题型</label><select id="qType"><option>选择题</option><option>填空题</option><option>判断题</option><option>计算题</option><option>应用题</option><option>阅读理解</option><option>词汇/语法</option><option>作文/写作</option><option>其他</option></select></div>
+  <div class="field"><label for="difficulty">难度</label><select id="difficulty"><option>中等</option><option>简单</option><option>困难</option></select></div>
+  <div class="field full"><label for="qContent">题目内容（文字）*</label><textarea id="qContent" required placeholder="请录入完整题干、选项、材料等。数学公式可先用普通文本表达。"></textarea></div>
+  <div class="field full"><label for="studentAnswer">学生原答案</label><textarea id="studentAnswer" placeholder="记录学生当时的答案或解题过程"></textarea></div>
+  <div class="field full"><label for="correctAnswer">正确答案（家长确认）</label><textarea id="correctAnswer" placeholder="填写确认后的标准答案，描红功能将使用此内容"></textarea></div>
+  <div class="field full"><label for="explanation">解析 / 规范解题步骤</label><textarea id="explanation" placeholder="建议填写分步、规范的解题过程"></textarea></div>
+  <div class="field"><label for="knowledge">知识点</label><input id="knowledge" placeholder="如：分数乘法"></div>
+  <div class="field"><label for="errorReason">错误原因</label><select id="errorReason"><option>未分析</option><option>概念不清</option><option>计算错误</option><option>审题错误</option><option>方法不当</option><option>记忆错误</option><option>书写不规范</option><option>其他</option></select></div>
+  <div class="field"><label for="qSource">题目来源</label><input id="qSource" placeholder="如：数学周测、练习册"></div>
+  <div class="field"><label for="qStatus">掌握状态</label><select id="qStatus"><option>待复习</option><option>复习中</option><option>已掌握</option><option>需强化</option></select></div>
+  <div class="field full"><label for="qImage">原题照片（可选）</label><input id="qImage" type="file" accept="image/*" capture="environment"><div class="muted">手机可直接拍照或从相册选择；图片会保存在本机浏览器中。</div><div class="actions"><button class="btn small secondary" type="button" id="ocrBtn">尝试 OCR 识别并填入题目</button><span class="muted" id="ocrState">首次使用需联网加载识别组件和中文语言包</span></div><img id="imagePreview" class="previewimg hidden" alt="原题预览"></div>
+ </div>
+ <div class="actions"><button class="btn" type="submit">保存错题</button><button class="btn secondary" type="button" id="resetFormBtn">清空表单</button><button class="btn secondary hidden" type="button" id="cancelEditBtn">取消编辑</button></div>
+ </form></div>
+</section>
+
+<section class="panel" id="mistakes">
+ <div class="card"><h2>错题本</h2><div class="grid">
+  <div class="field"><label>学科</label><select id="filterSubject"><option value="">全部学科</option><option>语文</option><option>数学</option><option>英语</option></select></div>
+  <div class="field"><label>掌握状态</label><select id="filterStatus"><option value="">全部状态</option><option>待复习</option><option>复习中</option><option>已掌握</option><option>需强化</option></select></div>
+  <div class="field full"><label>搜索题目 / 知识点</label><input id="filterText" placeholder="输入关键词"></div>
+ </div></div>
+ <div class="card"><div id="questionList" class="list"><div class="empty">暂无错题</div></div></div>
+</section>
+
+<section class="panel" id="paper">
+ <div class="card no-print"><h2>试卷重组</h2><div class="notice">从当前学生的错题中选择题目，系统将使用文字内容重新排版。请确保题目文字完整；原始照片仅作为参考档案。</div>
+ <div class="grid">
+  <div class="field"><label>试卷标题</label><input id="paperTitle" value="错题巩固练习"></div>
+  <div class="field"><label>学科</label><select id="paperSubject"><option value="">全部学科</option><option>语文</option><option>数学</option><option>英语</option></select></div>
+  <div class="field"><label>题目排序</label><select id="paperOrder"><option value="date">按错题日期</option><option value="random">随机排序</option><option value="subject">按学科和题型</option></select></div>
+  <div class="field"><label>答题留白</label><select id="paperSpace"><option value="2">适中</option><option value="1">较少</option><option value="3">较多</option></select></div>
+ </div><hr><div class="actions"><button class="btn secondary" id="selectAllPaper">全选当前筛选题目</button><button class="btn secondary" id="clearPaper">清空选择</button><button class="btn" id="makePaper">生成试卷预览</button></div></div>
+ <div class="card no-print"><h3>选择题目</h3><div id="paperQuestionList" class="list"><div class="empty">暂无可选题目</div></div></div>
+ <div class="card print-area"><div class="actions no-print"><button class="btn" id="printPaper">打印 / 保存 PDF</button></div><div id="paperPreview" class="paper-preview"><div class="empty">选择题目后，点击「生成试卷预览」。</div></div></div>
+</section>
+
+<section class="panel" id="trace">
+ <div class="card no-print"><h2>标准答案描红</h2><div class="notice">选择已有错题，使用已确认的正确答案及解析生成浅灰色规范卷面。打印时可选择保存为 PDF。</div>
+ <div class="grid">
+  <div class="field"><label>选择错题</label><select id="traceQuestion"></select></div>
+  <div class="field"><label>字体大小</label><select id="traceSize"><option value="18">较小</option><option value="22" selected>标准</option><option value="26">较大</option><option value="30">特大</option></select></div>
+  <div class="field"><label>描红深浅</label><select id="traceShade"><option value="0.22">很浅</option><option value="0.32" selected>浅灰</option><option value="0.42">稍深</option></select></div>
+  <div class="field"><label>纸张方向</label><select id="traceDirection"><option>纵向</option><option>横向</option></select></div>
+ </div><div class="actions"><button class="btn" id="makeTrace">生成描红卷</button><button class="btn secondary" id="printTrace">打印 / 保存 PDF</button></div></div>
+ <div class="card print-area"><div id="tracePreview" class="paper-preview"><div class="empty">请选择一道已填写正确答案的错题。</div></div></div>
+</section>
+
+<section class="panel" id="stats">
+ <div class="card"><h2>学习统计</h2><div id="statsContent"></div></div>
+ <div class="card"><h2>最近复习记录</h2><div id="practiceList" class="list"><div class="empty">暂无复习记录</div></div></div>
+</section>
+
+<section class="panel" id="data">
+ <div class="card"><h2>数据管理</h2><div class="notice">所有数据均保存在当前浏览器。备份文件包含学生、错题、图片及复习记录。请妥善保存备份文件。</div>
+ <div class="actions"><button class="btn" id="exportBtn">导出完整备份</button><label class="btn secondary" for="importFile" style="display:inline-flex;align-items:center;cursor:pointer">导入备份</label><input id="importFile" type="file" accept=".json,application/json" class="hidden"></div>
+ <hr><h3>当前数据概况</h3><div id="dataSummary" class="muted"></div>
+ <hr><h3>风险提示</h3><p class="muted">卸载浏览器、清理网站数据、使用无痕模式或更换设备，都可能导致本地数据丢失。GitHub Pages 只托管网页文件，不会自动保存你的错题资料。建议每次批量录入后导出备份。</p>
+ </div>
+</section>
+</main>
+<script>
+(()=>{'use strict';
+const DB_NAME='mistake_book_v1_db', DB_VERSION=1;
+let db=null, currentStudentId='', pendingImage=null, paperSelected=new Set(), traceCurrent=null;
+const $=id=>document.getElementById(id);
+const today=()=>new Date().toISOString().slice(0,10);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const setSave=t=>$('saveState').textContent=t;
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onupgradeneeded=()=>{const d=r.result;['students','questions','practices'].forEach(n=>{if(!d.objectStoreNames.contains(n))d.createObjectStore(n,{keyPath:'id'})})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function req(store,mode='readonly'){return db.transaction(store,mode).objectStore(store)}
+function all(store){return new Promise((resolve,reject)=>{const r=req(store).getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error)})}
+function put(store,obj){return new Promise((resolve,reject)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(obj);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
+function del(store,id){return new Promise((resolve,reject)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function get(store,id){return new Promise((resolve,reject)=>{const r=req(store).get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function blobToDataURL(blob){return new Promise((resolve,reject)=>{if(!blob)return resolve(null);const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
+function dataURLToBlob(data){if(!data||typeof data!=='string'||!data.startsWith('data:'))return null;const parts=data.split(','),mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/jpeg',bin=atob(parts[1]),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new Blob([bytes],{type:mime})}
+async function students(){return all('students')}
+async function questions(){return all('questions')}
+async function currentQuestions(){return (await questions()).filter(q=>q.studentId===currentStudentId&&!q.archived)}
+function showTab(name){document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===name));document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));if(name==='mistakes')renderQuestions();if(name==='paper')renderPaperChoices();if(name==='trace')renderTraceSelect();if(name==='stats')renderStats();if(name==='data')renderDataSummary();window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.go)));
+async function refreshStudents(selectId){let list=await students();$('currentStudent').innerHTML=list.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}（${esc(s.grade||'未设年级')}）</option>`).join('');if(!list.length){currentStudentId='';$('currentStudent').innerHTML='<option>暂无学生</option>';return}currentStudentId=selectId&&list.some(s=>s.id===selectId)?selectId:(list.some(s=>s.id===currentStudentId)?currentStudentId:list[0].id);$('currentStudent').value=currentStudentId;renderHome()}
+async function addStudent(){const name=prompt('请输入学生姓名');if(!name||!name.trim())return;const grade=prompt('请输入年级，例如：三年级、初一','三年级');const s={id:uid(),name:name.trim(),grade:(grade||'').trim(),createdAt:new Date().toISOString()};await put('students',s);await refreshStudents(s.id);setSave('学生已保存')}
+$('addStudentBtn').onclick=addStudent;
+$('editStudentBtn').onclick=async()=>{const s=await get('students',currentStudentId);if(!s)return;const name=prompt('修改学生姓名',s.name);if(!name||!name.trim())return;const grade=prompt('修改年级',s.grade||'');s.name=name.trim();s.grade=(grade||'').trim();await put('students',s);await refreshStudents(s.id);setSave('档案已更新')};
+$('currentStudent').onchange=e=>{currentStudentId=e.target.value;renderHome();setSave('已切换学生')};
+async function renderHome(){const qs=await currentQuestions();$('totalCount').textContent=qs.length;$('reviewCount').textContent=qs.filter(q=>q.status==='待复习'||q.status==='需强化').length;$('masteredCount').textContent=qs.filter(q=>q.status==='已掌握').length;$('subjectSummary').innerHTML=['语文','数学','英语'].map(s=>`<div class="item"><div class="grow"><b>${s}</b><div class="muted">${qs.filter(q=>q.subject===s).length} 道错题</div></div><span class="tag">${qs.filter(q=>q.subject===s&&q.status!=='已掌握').length} 道待巩固</span></div>`).join('')}
+function clearForm(){ $('questionForm').reset();$('questionId').value='';$('qDate').value=today();pendingImage=null;$('imagePreview').src='';$('imagePreview').classList.add('hidden');$('formHeading').textContent='新增错题';$('cancelEditBtn').classList.add('hidden')}
+$('resetFormBtn').onclick=clearForm;$('cancelEditBtn').onclick=clearForm;$('qDate').value=today();
+$('qImage').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{pendingImage=await compressImage(f);$('imagePreview').src=URL.createObjectURL(pendingImage);$('imagePreview').classList.remove('hidden')}catch(err){alert('图片读取失败：'+err.message)}};
+$('ocrBtn').onclick=async()=>{if(!pendingImage){alert('请先拍照或选择一张题目图片');return}try{$('ocrBtn').disabled=true;$('ocrState').textContent='正在加载 OCR 组件…';if(!window.Tesseract){await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';sc.onload=resolve;sc.onerror=()=>reject(new Error('OCR组件加载失败，请检查网络'));document.head.appendChild(sc)})}$('ocrState').textContent='正在识别中文和英文…';const result=await Tesseract.recognize(pendingImage,'chi_sim+eng',{logger:m=>{if(m.status==='recognizing text')$('ocrState').textContent='识别中：'+Math.round((m.progress||0)*100)+'%'}});const text=result.data.text||'';if(text.trim()){$('qContent').value=($('qContent').value.trim()?$('qContent').value.trim()+'\\n':'')+text.trim();$('ocrState').textContent='识别完成，请逐字校对后保存'}else $('ocrState').textContent='未识别到文字，请手动录入'}catch(err){$('ocrState').textContent='识别失败：'+err.message;alert('OCR识别失败：'+err.message)}finally{$('ocrBtn').disabled=false}};
+function compressImage(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(fr.error);fr.onload=()=>{const im=new Image();im.onerror=()=>reject(new Error('无法解析图片'));im.onload=()=>{const max=1800,scale=Math.min(1,max/Math.max(im.width,im.height)),w=Math.round(im.width*scale),h=Math.round(im.height*scale),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);c.toBlob(b=>b?resolve(b):reject(new Error('图片处理失败')),'image/jpeg',.82)};im.src=fr.result};fr.readAsDataURL(file)})}
+$('questionForm').onsubmit=async e=>{e.preventDefault();if(!currentStudentId){alert('请先新增学生');return}const id=$('questionId').value||uid(),old=await get('questions',id);const q={id,studentId:currentStudentId,subject:$('subject').value,date:$('qDate').value||today(),type:$('qType').value,difficulty:$('difficulty').value,content:$('qContent').value.trim(),studentAnswer:$('studentAnswer').value.trim(),correctAnswer:$('correctAnswer').value.trim(),explanation:$('explanation').value.trim(),knowledge:$('knowledge').value.trim(),errorReason:$('errorReason').value,source:$('qSource').value.trim(),status:$('qStatus').value,image:pendingImage||old?.image||null,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),archived:false};if(!q.content){alert('请填写题目内容');return}await put('questions',q);clearForm();setSave('已自动保存');await renderHome();alert('错题已保存');showTab('mistakes')};
+async function editQuestion(id){const q=await get('questions',id);if(!q)return;showTab('capture');$('formHeading').textContent='编辑错题';$('questionId').value=q.id;['subject','qDate','qType','difficulty','qContent','studentAnswer','correctAnswer','explanation','knowledge','errorReason','qSource','qStatus'].forEach((id,i)=>{const keys=['subject','date','type','difficulty','content','studentAnswer','correctAnswer','explanation','knowledge','errorReason','source','status'];$(id).value=q[keys[i]]||''});pendingImage=q.image||null;if(q.image){$('imagePreview').src=URL.createObjectURL(q.image);$('imagePreview').classList.remove('hidden')}else $('imagePreview').classList.add('hidden');$('cancelEditBtn').classList.remove('hidden')}
+async function renderQuestions(){const qs=await currentQuestions(),sub=$('filterSubject').value,st=$('filterStatus').value,term=$('filterText').value.trim().toLowerCase();const arr=qs.filter(q=>(!sub||q.subject===sub)&&(!st||q.status===st)&&(!term||[q.content,q.knowledge,q.correctAnswer].join(' ').toLowerCase().includes(term))).sort((a,b)=>(b.date||'').localeCompare(a.date||''));$('questionList').innerHTML=arr.length?arr.map(q=>`<div class="item"><div class="grow"><div class="item-title">${esc(q.content.slice(0,130))}${q.content.length>130?'…':''}</div><div><span class="tag">${esc(q.subject)}</span><span class="tag">${esc(q.type)}</span><span class="tag">${esc(q.status)}</span></div><div class="muted">${esc(q.date)} · ${esc(q.knowledge||'未填写知识点')}</div></div><div class="actions" style="margin:0"><button class="btn small secondary" data-edit="${q.id}">编辑</button><button class="btn small secondary" data-trace="${q.id}">描红</button><button class="btn small secondary" data-review="${q.id}">记录复习</button><button class="btn small danger" data-del="${q.id}">删除</button></div></div>`).join(''):'<div class="empty">没有符合条件的错题</div>';document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editQuestion(b.dataset.edit));document.querySelectorAll('[data-trace]').forEach(b=>b.onclick=()=>{showTab('trace');$('traceQuestion').value=b.dataset.trace;makeTrace()});document.querySelectorAll('[data-review]').forEach(b=>b.onclick=async()=>{const q=await get('questions',b.dataset.review);if(!q)return;const result=prompt('本次复习结果：输入“正确”或“错误”','正确');if(!result)return;const ok=result.trim()==='正确';await put('practices',{id:uid(),studentId:currentStudentId,questionId:q.id,date:today(),subject:q.subject,result:ok?'答对':'答错',content:q.content.slice(0,100)});q.status=ok?'复习中':'需强化';q.updatedAt=new Date().toISOString();await put('questions',q);renderQuestions();renderHome();setSave('复习记录已保存')});document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('确定删除这道错题？已生成的试卷不会自动删除其历史文本。')){await del('questions',b.dataset.del);paperSelected.delete(b.dataset.del);renderQuestions();renderHome();setSave('错题已删除')}})}
+['filterSubject','filterStatus','filterText'].forEach(id=>$(id).addEventListener('input',renderQuestions));
+async function renderPaperChoices(){const qs=await currentQuestions(),sub=$('paperSubject').value,arr=qs.filter(q=>!sub||q.subject===sub);$('paperQuestionList').innerHTML=arr.length?arr.map(q=>`<label class="item"><input type="checkbox" style="width:auto;margin-top:5px" data-pick="${q.id}" ${paperSelected.has(q.id)?'checked':''}><span class="grow"><b>${esc(q.subject)} · ${esc(q.type)}</b><div>${esc(q.content.slice(0,150))}</div><span class="muted">${esc(q.date)} · ${esc(q.knowledge||'无知识点')}</span></span></label>`).join(''):'<div class="empty">当前没有可组卷的错题</div>';document.querySelectorAll('[data-pick]').forEach(c=>c.onchange=()=>{c.checked?paperSelected.add(c.dataset.pick):paperSelected.delete(c.dataset.pick)})}
+$('paperSubject').onchange=renderPaperChoices;$('selectAllPaper').onclick=async()=>{const qs=await currentQuestions(),sub=$('paperSubject').value;qs.filter(q=>!sub||q.subject===sub).forEach(q=>paperSelected.add(q.id));renderPaperChoices()};$('clearPaper').onclick=()=>{paperSelected.clear();renderPaperChoices()};
+$('makePaper').onclick=async()=>{let qs=(await currentQuestions()).filter(q=>paperSelected.has(q.id));if(!qs.length){alert('请先选择题目');return}const order=$('paperOrder').value;if(order==='random')qs.sort(()=>Math.random()-.5);else if(order==='subject')qs.sort((a,b)=>(a.subject+a.type).localeCompare(b.subject+b.type));else qs.sort((a,b)=>(a.date||'').localeCompare(b.date||''));const space=Number($('paperSpace').value);$('paperPreview').innerHTML=`<h1>${esc($('paperTitle').value||'错题巩固练习')}</h1><div class="paper-meta"><span>学生：${esc((await get('students',currentStudentId))?.name||'')}</span><span>日期：__________</span><span>得分：__________</span></div>`+qs.map((q,i)=>`<div class="paper-q"><div class="qtitle">${i+1}.【${esc(q.subject)}·${esc(q.type)}】${esc(q.content)}</div>${Array.from({length:space},()=>'<div class="answerline"></div>').join('')}</div>`).join('')};
+$('printPaper').onclick=()=>window.print();
+async function renderTraceSelect(){const qs=await currentQuestions();$('traceQuestion').innerHTML=qs.map(q=>`<option value="${q.id}">${esc(q.subject)} · ${esc(q.content.slice(0,45))}</option>`).join('');if(!qs.length)$('traceQuestion').innerHTML='<option value="">暂无错题</option>'}
+async function makeTrace(){const q=await get('questions',$('traceQuestion').value);if(!q){$('tracePreview').innerHTML='<div class="empty">请选择错题</div>';return}if(!q.correctAnswer&&!q.explanation){alert('这道错题还没有填写正确答案或解析，请先编辑错题');return}traceCurrent=q;const size=$('traceSize').value,shade=$('traceShade').value;const answer=q.correctAnswer||'',ex=q.explanation||'';$('tracePreview').innerHTML=`<h1>标准答案描红训练</h1><div class="paper-meta"><span>学生：${esc((await get('students',currentStudentId))?.name||'')}</span><span>学科：${esc(q.subject)}</span><span>日期：__________</span></div><div class="paper-q"><b>题目</b><div style="white-space:pre-wrap;margin-top:8px">${esc(q.content)}</div></div><div class="paper-q"><b>标准答案（浅灰描红）</b><div class="trace" style="font-size:${size}px;opacity:${shade};margin-top:8px">${esc(answer||ex)}</div></div>${answer&&ex?`<div class="paper-q"><b>规范解析 / 解题步骤（浅灰描红）</b><div class="trace" style="font-size:${size}px;opacity:${shade}">${esc(ex)}</div></div>`:''}<div class="paper-q"><b>独立书写</b><div class="answerline"></div><div class="answerline"></div><div class="answerline"></div></div>`}
+$('makeTrace').onclick=makeTrace;$('traceQuestion').onchange=()=>{};$('printTrace').onclick=()=>{if(!traceCurrent){alert('请先生成描红卷');return}window.print()};
+async function renderStats(){const qs=await currentQuestions(),ps=(await all('practices')).filter(p=>p.studentId===currentStudentId);$('statsContent').innerHTML=['语文','数学','英语'].map(s=>`<div class="item"><div class="grow"><b>${s}</b><div class="muted">共 ${qs.filter(q=>q.subject===s).length} 道 · 已掌握 ${qs.filter(q=>q.subject===s&&q.status==='已掌握').length} 道</div></div></div>`).join('')+`<p class="muted">错题总数：${qs.length}；复习记录：${ps.length} 条。</p>`;$('practiceList').innerHTML=ps.length?ps.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>`<div class="item"><div class="grow">${esc(p.date)} · ${esc(p.subject)} · ${esc(p.result)}<div class="muted">${esc(p.content)}</div></div></div>`).join(''):'<div class="empty">暂无复习记录。可在后续版本增加独立复习打卡入口。</div>'}
+async function renderDataSummary(){const ss=await students(),qs=await questions();$('dataSummary').textContent=`学生：${ss.length} 名；错题：${qs.length} 道（含归档）；其中包含原题图片 ${qs.filter(q=>q.image).length} 道。`}
+$('exportBtn').onclick=async()=>{const qs=await questions();const exportQuestions=await Promise.all(qs.map(async q=>({...q,image:q.image?await blobToDataURL(q.image):null})));const data={app:'mistake-book',version:1,exportedAt:new Date().toISOString(),students:await students(),questions:exportQuestions,practices:await all('practices')};const blob=new Blob([JSON.stringify(data)],{type:'application/json'}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='智能错题本备份_'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);setSave('备份文件已生成')};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(data.app!=='mistake-book'||!Array.isArray(data.students)||!Array.isArray(data.questions))throw new Error('备份文件格式不正确');if(!confirm(`将导入 ${data.students.length} 名学生、${data.questions.length} 道错题。相同 ID 的记录会被覆盖，其他现有记录保留。继续吗？`))return;for(const s of data.students)await put('students',s);for(const q of data.questions)await put('questions',{...q,image:typeof q.image==='string'?dataURLToBlob(q.image):q.image||null});for(const p of (data.practices||[]))await put('practices',p);await refreshStudents();await renderHome();alert('备份导入完成');setSave('数据已恢复')}catch(err){alert('导入失败：'+err.message)}finally{e.target.value=''}};
+async function init(){if(!('indexedDB'in window)){alert('当前浏览器不支持 IndexedDB，无法安全保存数据');return}db=await openDB();let ss=await students();if(!ss.length){const s={id:uid(),name:'学生 A',grade:'请设置年级',createdAt:new Date().toISOString()};await put('students',s)}await refreshStudents();await renderHome();setSave('本地数据已加载');}
+init().catch(e=>{console.error(e);setSave('初始化失败');alert('初始化失败：'+e.message+'。请检查浏览器是否允许网站使用本地存储。')});
+})();
+</script>
+</body></html>
